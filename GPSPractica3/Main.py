@@ -147,7 +147,8 @@ class MyMainApp(App):
 
         print("Starting")
         print("---------------------------------------------------------")
-
+        print("Cargando datos")
+        cargar_datos("Mapa_INSIA2.txt")
         tracking_bt = My_Button(on_press=self.stop_tracking,text="Stop")
 
         self.root_widget.buttons_box.add_widget(tracking_bt)
@@ -215,7 +216,7 @@ class MyMainApp(App):
         print(f"speed: {actual_speed:.2f}", end= "  ")
         self.root_widget.speedometer.set_speed_text(actual_speed)
 
-        utm_x, utm_y,tiempo = gps_message
+        utm_x, utm_y = gps_message[0], gps_message[1]
 
         limit_speed = encontrar_velocidad(utm_x,utm_y)
         print(f"limit: {limit_speed:.2f}")

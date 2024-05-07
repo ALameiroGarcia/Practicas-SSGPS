@@ -5,12 +5,8 @@ import serial.tools.list_ports
 from Datum import EU1950, WGS84
 
 import math 
-import numpy as np
-# Cargar datos desde el archivo CSV
-#datos_txt = np.loadtxt('limites.txt', delimiter='\t')  # Ajusta el delimitador según tu archivo CSV
 
-# Guardar datos en un archivo .npy
-#np.save('datos.npy', datos_txt)
+
 
 def leer_datos_gps(queue, stop_event):
     ports = list(serial.tools.list_ports.comports())
@@ -79,19 +75,33 @@ def conversorUTM(latitud, longitud, datum, tiempo):
 
     return UTM_Easting, UTM_Norting, tiempo
 
+datos_cargados = None
+
+def cargar_datos(archivo):
+    datos = []
+    with open(archivo, 'r') as f:
+        for linea in f:
+            y,x, vel = map(float, linea.strip().split('\t'))
+            datos.append((y,x, vel))
+    print("Datos cargados con exito")
+    return datos
 
 def encontrar_velocidad(coordenada_x, coordenada_y):
+    global datos_cargados
+    
+    if datos_cargados is None:
+        archivo = 'Mapa_INSIA2.txt'  
+        datos_cargados = cargar_datos(archivo)
+    
     velocidad = None
     min_distancia = float('inf')  # Inicializamos la distancia mínima como infinito
     
-    with open("Mapa_INSIA2.txt", 'r') as f:
-        for linea in f:
-            x, y, vel = map(float, linea.strip().split('\t'))
-            distancia = ((x - coordenada_x)**2 + (y - coordenada_y)**2) ** 0.5
-            if distancia < min_distancia:
-                min_distancia = distancia
-                velocidad = vel
-    
+    for x, y, vel in datos_cargados:
+        distancia = abs((coordenada_x-x) + (coordenada_y-y))
+        
+        if distancia < min_distancia:
+            min_distancia = distancia
+            velocidad = vel
     return velocidad
     
 def get_speed(gps_message_p, gps_message_now):
